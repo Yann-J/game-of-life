@@ -1,0 +1,284 @@
+<!DOCTYPE html>
+<meta charset="utf-8">
+<head>
+  <title>Game of Life</title>
+  <script src="https://d3js.org/d3.v4.js"></script>
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/bootstrap/4.5.2/css/bootstrap.min.css" integrity="sha384-JcKb8q3iqJ61gNV9KGb8thSsNjpSL0n8PARn9HuZOnIxN0hoP+VmmDGMN5t9UJ0Z" crossorigin="anonymous">
+  <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
+  <link rel="stylesheet" href="css/style.css">
+  <script src="js/grid.js"></script>
+</head>
+<body>
+  <form class="m-2">
+    <div class="form-row align-items-center">
+      <div class="col">
+        <input type="range" class="form-control-range mx-2" id="speed" value="80">
+      </div>
+      <div class="col">
+        <div class="btn-group" role="group">
+          <button type="button" id="start"  class="btn btn-warning btn-sm"><i class="fa fa-play"></i></button>
+          <button type="button" id="stop"   class="btn btn-warning btn-sm" disabled="disabled"><i class="fa fa-stop"></i></button>
+          <button type="button" id="step"   class="btn btn-warning btn-sm"><i class="fa fa-step-forward"></i></button>
+          <button type="button" id="clear"  class="btn btn-danger  btn-sm"><i class="fa fa-times-circle"></i></button>
+          <button type="button" id="random" class="btn btn-danger  btn-sm"><i class="fa fa-random"></i></button>
+        </div>
+      </div>
+      <div class="col">
+        <div class="input-group">
+          <input type="text" class="form-control form-control-sm" placeholder="Save this layout..." id="save-name">
+          <div class="input-group-append">
+            <button class="btn btn-outline-success btn-sm" type="button" id="save"><i class="fa fa-bookmark"></i></button>
+            <button class="btn btn-outline-danger btn-sm" type="button" id="delete"><i class="fa fa-trash"></i></button>
+          </div>
+        </div>
+      </div>
+      <div class="col">
+        <select class="custom-select custom-select-sm" placeholder="Load a layout" id="load">
+        </select>
+      </div>
+      <div class="col">
+        <span class="badge badge-secondary" id="iterations">0</span>
+      </div>
+    </div>
+  </form>
+
+  <div id="grid" class="m-2 crosshair"></div>
+
+<script>
+    const ROWS = 100;
+    const COLUMNS = 100;
+    const WIDTH = 900; //px
+
+    let interval = 200; //ms
+
+    refreshStoredLayouts();
+
+    function emptyGrid() {
+      let data = new Array();
+
+      // iterate for rows	
+      for (var row = 0; row < ROWS; row++) {
+        data.push( new Array() );
+        
+        // iterate for cells/columns inside rows
+        for (var column = 0; column < COLUMNS; column++) {
+          data[row].push({
+            alive: false,
+            x: column,
+            y: row
+          });
+        }
+      }
+      return data;
+    };
+
+    let data = emptyGrid();
+
+    initGrid('#grid', ROWS, COLUMNS, WIDTH, data);
+
+    // Life Logic
+    // This mutates the grid...
+    function iterate(grid) {
+      // Store all new statuses in a new grid to avoid affecting other calculations
+      let newGrid = new Array(grid.length);
+
+      // workaround for JS modulus returning negative values...
+      function mod(n, m) {
+        return ((n % m) + m) % m;
+      }
+
+      for(let row = 0; row<grid.length; row++) {
+        newGrid[row] = new Array(grid[row].length);
+        for(let column = 0; column<grid[row].length; column++) {
+          // compute number of neighbors
+          let neighbors = 0;
+          [row-1, row, row+1].forEach(r => {
+            [column-1, column, column+1].forEach(c => {
+              // We use modulus the grid lengths to avoid border effects - this will make the shapes loop around the borders
+              if(grid[mod(r,grid.length)][mod(c,grid[row].length)].alive && !(r==row && c==column)) {
+                neighbors++;
+              }
+            });
+          });
+
+          // For a space that is 'populated':
+          //     Each cell with one or no neighbors dies, as if by solitude. 
+          //     Each cell with four or more neighbors dies, as if by overpopulation. 
+          //     Each cell with two or three neighbors survives. 
+          // For a space that is 'empty' or 'unpopulated'
+          //     Each cell with three neighbors becomes populated. 
+          if(grid[row][column].alive) {
+            newGrid[row][column] = (neighbors == 2 || neighbors == 3);
+          }
+          else {
+            newGrid[row][column] = (neighbors == 3);
+          }
+        }
+      }
+
+      // Mutate the initial grid all at once
+      for(let row = 0; row<grid.length; row++) {
+        for(let column = 0; column<grid[row].length; column++) {
+          grid[row][column].alive = newGrid[row][column];
+        }
+      }
+    };
+
+
+    // Timer
+    let iterations = 0;
+    let timer = null;
+
+    function reset() {
+      iterations = 0;
+    }
+
+    function tick() {
+      // Compute next frame
+      iterate(data);
+      iterations++;
+
+      // Redraw
+      redraw();
+    };
+
+    function redraw() {
+      // Update chart
+      // This is REALLY ugly ... there HAS to be a better way to tell D3 to redraw...
+      let e = new Event('draw');
+      let elements = document.querySelectorAll(".square");
+      Array.prototype.forEach.call(elements, function(el, i){
+        el.dispatchEvent(e);
+      });
+
+      // Update iterations badge
+      document.getElementById('iterations').textContent = String(iterations);
+    }
+
+    function start() {
+      console.log('Starting!');
+      if(timer) {clearInterval(timer);}
+      timer = setInterval(tick, interval);
+      document.getElementById('start').setAttribute('disabled','disabled');
+      document.getElementById('stop').removeAttribute('disabled');
+    };
+
+    function stop() {
+      console.log('Stopping!');
+      if(timer) {clearInterval(timer);}
+      timer = null;
+      document.getElementById('stop').setAttribute('disabled','disabled');
+      document.getElementById('start').removeAttribute('disabled');
+    };
+
+    document.getElementById('start').addEventListener('click', function() {
+      start();
+    });
+    document.getElementById('stop').addEventListener('click', function() {
+      stop();
+    });
+    document.getElementById('step').addEventListener('click', function() {
+      tick();
+    });
+    document.getElementById('speed').addEventListener('change', function() {
+      // range is 0-100
+      // We want speed to be between 1s and 10ms
+      interval = 1000 - this.value * 99/10;
+      // Restart timer if running
+      if(timer) {
+        clearInterval(timer);
+        timer = setInterval(tick, interval);
+      }
+    });
+    document.getElementById('clear').addEventListener('click', function() {
+      reset();
+      data.forEach(row => {
+        row.forEach(cell => cell.alive = false);
+      })
+      redraw();
+    });
+    document.getElementById('random').addEventListener('click', function() {
+      reset();
+      data.forEach(row => {
+        row.forEach(cell => cell.alive = (Math.random() > 0.5));
+      })
+      redraw();
+    });
+
+    // Load / save
+    function refreshStoredLayouts() {
+      let list = document.getElementById('load');
+      list.innerHTML = "<option>Select layout to load</option>";
+      
+      // From default list
+      for(let name in DEFAULT_LAYOUTS) {
+        let option = document.createElement('option');
+        option.text = name;
+        list.appendChild(option);
+      }
+
+      // Separator
+      if(localStorage.length) {
+        let option = document.createElement('option');
+        option.text = "──────────";
+        option.disabled = "disabled";
+        list.appendChild(option);
+      }
+
+      // From local storage
+      for(let i = 0; i<localStorage.length; i++) {
+        let name = localStorage.key(i);
+        let option = document.createElement('option');
+        option.text = name;
+        list.appendChild(option);
+      }
+    };
+
+    document.getElementById('save').addEventListener('click', function() {
+      // Produce a simplified model
+      let copy = data.map(row => {
+        // Use 0/1 instead of boolean to save space (it is stored as JSON string)
+        return row.map(cell => cell.alive ? 1 : 0);
+      });
+
+      let name = document.getElementById('save-name').value;
+      if(name && !DEFAULT_LAYOUTS[name]) {
+        console.log(`Saving layout ${name}`);
+        console.log(copy);
+        localStorage.setItem(name,JSON.stringify(copy));
+
+        refreshStoredLayouts();
+      }
+    });
+
+    document.getElementById('delete').addEventListener('click', function() {
+      let name = document.getElementById('save-name').value;
+      if(name) {
+        console.log(`Deleting layout ${name}`);
+        localStorage.removeItem(name);
+        refreshStoredLayouts();
+      }
+    });
+
+    document.getElementById('load').addEventListener('change', function() {
+      let name = this.value;
+      if(name) {
+        console.log(`Loading layout ${name}`);
+        let loaded = DEFAULT_LAYOUTS[name] || JSON.parse(localStorage.getItem(name));
+        if(loaded) {
+          console.log(loaded);
+          for(let i = 0; i<data.length; i++) {
+            for(let j = 0; j<data[i].length; j++) {
+              data[i][j].alive = !!loaded[i][j];
+            }
+          }
+          document.getElementById('save-name').value = name;
+          stop();
+          reset();
+          redraw();
+        }
+      }
+    });
+
+  </script>
+</body>
