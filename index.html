@@ -191,6 +191,7 @@
       }
     });
     document.getElementById('clear').addEventListener('click', function() {
+      stop();
       reset();
       data.forEach(row => {
         row.forEach(cell => cell.alive = false);
@@ -198,6 +199,7 @@
       redraw();
     });
     document.getElementById('random').addEventListener('click', function() {
+      stop();
       reset();
       data.forEach(row => {
         row.forEach(cell => cell.alive = (Math.random() > 0.5));
