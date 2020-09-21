@@ -15,8 +15,8 @@ function initGrid(selector, nRows, nCols, width, data) {
     .on("mouseleave", function() {
       drawing = false;
     });
-      
-    let row = grid.selectAll(".row")
+
+  let row = grid.selectAll(".row")
     .data(data)
     .enter()
     .append("g")
