@@ -36,7 +36,7 @@ function initGrid(selector, nRows, nCols, width, data) {
     .data(function(d) { return d; })
     .enter()
     .append("rect")
-    .attr("class", function(d) { return `square${d.alive ? ' alive' : ''}`;})
+    .attr("class", function(d) { return `square ${d.alive ? 'alive' : ''} ${(d.x+d.y) % 2 ? '': 'odd'}`;})
     .attr("x", function(d) { return d.x * cellSize; })
     .attr("y", function(d) { return d.y * cellSize; })
     .attr("width",  cellSize)
@@ -50,7 +50,7 @@ function initGrid(selector, nRows, nCols, width, data) {
         paint(this,d);
       }
     })
-    .on('click', function(d) {
+    .on('mousedown', function(d) {
       paint(this,d);
     });
 }

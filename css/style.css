@@ -3,6 +3,10 @@
   fill: #fff;
 }
 
+.square.odd {
+  fill: #eee;
+}
+
 .square.alive {
   fill: #2C93E8;
 }
