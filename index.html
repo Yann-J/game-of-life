@@ -7,44 +7,54 @@
   <link rel="stylesheet" href="https://stackpath.bootstrapcdn.com/font-awesome/4.7.0/css/font-awesome.min.css" integrity="sha384-wvfXpqpZZVQGK6TAh5PVlGOfQNHSoD2xbE+QkPxCAFlNEevoEH3Sl0sibVcOQVnN" crossorigin="anonymous">
   <link rel="stylesheet" href="css/style.css">
   <script src="js/grid.js"></script>
+  <script src="js/game.js"></script>
 </head>
 <body>
-  <form class="m-2">
-    <div class="form-row align-items-center">
-      <div class="col">
-        <input type="range" class="form-control-range mx-2" id="speed" value="80">
-      </div>
-      <div class="col">
-        <div class="btn-group" role="group">
-          <button type="button" id="start"  class="btn btn-warning btn-sm"><i class="fa fa-play"></i></button>
-          <button type="button" id="stop"   class="btn btn-warning btn-sm" disabled="disabled"><i class="fa fa-stop"></i></button>
-          <button type="button" id="step"   class="btn btn-warning btn-sm"><i class="fa fa-step-forward"></i></button>
-          <button type="button" id="clear"  class="btn btn-danger  btn-sm"><i class="fa fa-times-circle"></i></button>
-          <button type="button" id="random" class="btn btn-danger  btn-sm"><i class="fa fa-random"></i></button>
+  <div class="container">
+    <h1>John Conway's Game of Life</h1>
+    <p>See <a href="https://en.wikipedia.org/wiki/Conway%27s_Game_of_Life" target="_blank" rel="noopener noreferrer">Wikipedia</a> to learn about this fascinating game. The rules are:</p>
+    <ul>
+      <li>A "cell" (blue square) will die on the next iteration of the game if it has strictly less than 2 (out of loneliness) or more than 3 (out of overpopulation) neighboring cells (including diagonals)</li>
+      <li>A new cell will come alive on an empty space if it has exactly 3 live neighbors</li>
+    </ul>
+    <p>Use the controls below to start/stop the simulation, tweak speed, load and save some starting layouts, change speed etc...</p>
+    <form class="m-2">
+      <div class="form-row align-items-center">
+        <div class="col">
+          <input type="range" class="form-control-range mx-2" id="speed" value="80">
         </div>
-      </div>
-      <div class="col">
-        <div class="input-group">
-          <input type="text" class="form-control form-control-sm" placeholder="Save this layout..." id="save-name">
-          <div class="input-group-append">
-            <button class="btn btn-outline-success btn-sm" type="button" id="save"><i class="fa fa-bookmark"></i></button>
-            <button class="btn btn-outline-danger btn-sm" type="button" id="delete"><i class="fa fa-trash"></i></button>
+        <div class="col">
+          <div class="btn-group" role="group">
+            <button type="button" id="start"  class="btn btn-warning btn-sm" title="Run simulation"><i class="fa fa-play"></i></button>
+            <button type="button" id="stop"   class="btn btn-warning btn-sm" title="Stop" disabled="disabled"><i class="fa fa-stop"></i></button>
+            <button type="button" id="step"   class="btn btn-warning btn-sm" title="Run one iteration"><i class="fa fa-step-forward"></i></button>
+            <button type="button" id="clear"  class="btn btn-danger  btn-sm" title="Clear layout"><i class="fa fa-times-circle"></i></button>
+            <button type="button" id="random" class="btn btn-danger  btn-sm" title="Generate random layout"><i class="fa fa-random"></i></button>
           </div>
         </div>
+        <div class="col">
+          <div class="input-group">
+            <input type="text" class="form-control form-control-sm" placeholder="Save this layout..." id="save-name">
+            <div class="input-group-append">
+              <button class="btn btn-outline-success btn-sm" type="button" id="save"   title="Save this layout in browser cache"><i class="fa fa-bookmark"></i></button>
+              <button class="btn btn-outline-danger btn-sm"  type="button" id="delete" title="Delete layout with this name from browser cache"><i class="fa fa-trash"></i></button>
+            </div>
+          </div>
+        </div>
+        <div class="col">
+          <select class="custom-select custom-select-sm" placeholder="Load a layout" id="load">
+          </select>
+        </div>
+        <div class="col">
+          <span class="badge badge-secondary" id="iterations">0</span>
+        </div>
       </div>
-      <div class="col">
-        <select class="custom-select custom-select-sm" placeholder="Load a layout" id="load">
-        </select>
-      </div>
-      <div class="col">
-        <span class="badge badge-secondary" id="iterations">0</span>
-      </div>
-    </div>
-  </form>
+    </form>
 
-  <div id="grid" class="m-2 crosshair"></div>
+    <div id="grid" class="m-2 crosshair"></div>
+  </div>
 
-<script>
+  <script>
     const ROWS = 100;
     const COLUMNS = 100;
     const WIDTH = 900; //px

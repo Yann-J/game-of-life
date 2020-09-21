@@ -1,10 +1,20 @@
 function initGrid(selector, nRows, nCols, width, data) {
   let cellSize = Math.floor(width/nCols);
+  let drawing = false;
 
   let grid = d3.select(selector)
     .append("svg")
     .attr("width", width)
-    .attr("height",nRows*cellSize);
+    .attr("height",nRows*cellSize)
+    .on("mousedown", function() {
+      drawing = true;
+    })
+    .on("mouseup", function() {
+      drawing = false;
+    })
+    .on("mouseleave", function() {
+      drawing = false;
+    });
       
     let row = grid.selectAll(".row")
     .data(data)
@@ -15,8 +25,13 @@ function initGrid(selector, nRows, nCols, width, data) {
   let infoBox = grid.append("text")
       .attr('x', width - 30)
       .attr('y', 10)
-      .attr('class','position')
-    
+      .attr('class','position');
+
+  function paint(target, data) {
+    data.alive = !data.alive;
+    d3.select(target).classed("alive", data.alive);
+  };
+
   row.selectAll(".square")
     .data(function(d) { return d; })
     .enter()
@@ -31,10 +46,12 @@ function initGrid(selector, nRows, nCols, width, data) {
     })
     .on('mouseover', function(d) {
       infoBox.text(`${d.x};${d.y}`);
+      if(drawing) {
+        paint(this,d);
+      }
     })
     .on('click', function(d) {
-      d.alive = !d.alive;
-      d3.select(this).classed("alive", d.alive);
+      paint(this,d);
     });
 }
 

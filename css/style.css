@@ -12,6 +12,6 @@
   font-size: 9px;
 }
 
-.crosshair {
+svg {
   cursor: crosshair;
 }
