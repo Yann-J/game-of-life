@@ -20,11 +20,11 @@
     <p>Use the controls below to start/stop the simulation, tweak speed, load and save some starting layouts, change speed etc...</p>
     <form class="m-2">
       <div class="form-row align-items-center">
-        <div class="col-auto">
-          <i class="fa fa-tachometer"></i>
+        <div class="col-auto" style="width: 80px;">
+          <i class="fa fa-tachometer"></i> <span class="small" id="speed-indicator">10 fps</span>
         </div>
         <div class="col-auto">
-          <input type="range" class="custom-range mr-3 pt-2" id="speed" value="80">
+          <input type="range" class="custom-range mr-3 pt-2" id="speed" value="10" min="1" max="100">
         </div>
         <div class="col-auto">
           <div class="btn-group" role="group">
@@ -62,7 +62,7 @@
     const COLUMNS = 100;
     const WIDTH = 900; //px
 
-    let interval = 200; //ms
+    let interval = 100; //ms
 
     refreshStoredLayouts();
 
@@ -194,15 +194,19 @@
       tick();
     });
     document.getElementById('speed').addEventListener('change', function() {
-      // range is 0-100
-      // We want speed to be between 1s and 10ms
-      interval = 1000 - this.value * 99/10;
+      // range is 1-100 fps
+      let fps = Math.min(Math.max(this.value, 1), 100);
+      interval = 1000.0 / fps; //ms
+      console.log(interval);
+      // Update indicator
+      document.getElementById('speed-indicator').textContent = `${fps} fps`;
       // Restart timer if running
       if(timer) {
         clearInterval(timer);
         timer = setInterval(tick, interval);
       }
     });
+
     document.getElementById('clear').addEventListener('click', function() {
       stop();
       reset();

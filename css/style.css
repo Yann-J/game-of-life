@@ -19,3 +19,7 @@
 svg {
   cursor: crosshair;
 }
+
+#speed-indicator {
+  width: 25px;
+}
