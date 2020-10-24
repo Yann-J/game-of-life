@@ -13,3 +13,6 @@ You can check it out directly on [this link](https://yannouchou.github.io/game-o
 * D3
 * Bootstrap
 * Font-awesome
+
+Thanks Simon!
+
