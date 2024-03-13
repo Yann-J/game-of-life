@@ -6,7 +6,7 @@ Performance is not very good, mostly of the way I'm telling D3 to refresh...
 
 Just load in your browser, it should let you load some sample layouts that you can run...
 
-You can check it out directly on [this link](https://yannouchou.github.io/game-of-life/)
+You can check it out directly on [this link](https://yann-j.github.io/game-of-life/)
 
 ## Made with
 
